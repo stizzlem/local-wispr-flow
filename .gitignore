@@ -1,0 +1,8 @@
+# Models: 1.5 GB+, re-downloadable (see README restore steps)
+models/
+
+# Voice recordings and transcripts: private data, never commit
+*.wav
+last-raw.txt
+last-clean.txt
+raw-transcript.txt
