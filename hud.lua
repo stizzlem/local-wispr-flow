@@ -20,7 +20,8 @@ local barHeights = {}
 for i = 1, BAR_COUNT do barHeights[i] = 0.15 end
 
 local function screenFrame()
-  local f = hs.screen.mainScreen():frame()
+  local screen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+  local f = screen:frame()
   local x = f.x + (f.w - WIDTH) / 2
   local y = f.y + f.h - HEIGHT - 90   -- sits just above the dock
   return hs.geometry.rect(x, y, WIDTH, HEIGHT)
@@ -31,6 +32,13 @@ local function ensureCanvas()
   canvas = hs.canvas.new(screenFrame())
   canvas:level(hs.canvas.windowLevels.overlay)
   canvas:behavior({ "canJoinAllSpaces", "stationary" })
+end
+
+-- Re-home the pill to whichever screen the mouse is on right now, in case
+-- the user switched monitors between dictations (canvas doesn't move
+-- automatically once created).
+local function repositionToCurrentScreen()
+  if canvas then canvas:frame(screenFrame()) end
 end
 
 -- Build the full element list each frame: background pill, dot, label, bars.
@@ -135,6 +143,7 @@ end
 function M.showRecording(secs)
   if hideTimer then hideTimer:stop(); hideTimer = nil end
   ensureCanvas()
+  if secs == 0 then repositionToCurrentScreen() end
   recSecs = secs
   stepWaveform()
   render("rec", formatSecs(recSecs))
