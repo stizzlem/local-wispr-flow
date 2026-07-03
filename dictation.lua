@@ -14,14 +14,11 @@ local MIC_DEVICE = ":0"   -- MacBook Pro Microphone (ffmpeg avfoundation index)
 
 local DOUBLE_TAP_SECS = 0.4   -- max gap between the two Ctrl taps
 
+local hud = dofile(DIR .. "/hud.lua")
+
 local recorder = nil      -- the running ffmpeg task, nil when idle
 local recSecs = 0
 local recTimer = nil
-
--- Menu-bar status: IDLE / REC m:ss / "..."
-local menubar = hs.menubar.new()
-local function setStatus(s) menubar:setTitle(s) end
-setStatus("IDLE")
 
 -- Paste text at the cursor: save clipboard, paste ours, restore theirs.
 local function injectText(text)
@@ -35,16 +32,16 @@ end
 
 -- Called when ffmpeg has exited and the WAV is finalized.
 local function processRecording()
-  setStatus("...")
+  hud.showBusy("Transcribing")
   hs.task.new(DIR .. "/dictate.sh", function(exitCode, stdOut, stdErr)
-    hs.alert.closeAll()
-    setStatus("IDLE")
     if exitCode == 0 and stdOut:match("%S") then
       injectText(stdOut)
       hs.sound.getByName("Submarine"):play()
+      hud.flash("Done", 0.8)
     elseif exitCode == 0 then
-      hs.alert.show("No speech detected", 1.5)
+      hud.flash("No speech detected", 1.5)
     else
+      hud.hide()
       hs.notify.new({title = "Dictation failed",
                      informativeText = stdErr or "unknown error"}):send()
     end
@@ -61,17 +58,16 @@ local function toggleDictation()
        "-ar", "16000", "-ac", "1", "-y", WAV})
     recorder:start()
     hs.sound.getByName("Glass"):play()
-    hs.alert.show("● Recording — double-tap Ctrl to stop", 2)
     recSecs = 0
-    setStatus("REC 0:00")
+    hud.showRecording(recSecs)
     recTimer = hs.timer.doEvery(1, function()
       recSecs = recSecs + 1
-      setStatus(string.format("REC %d:%02d", math.floor(recSecs / 60), recSecs % 60))
+      hud.showRecording(recSecs)
     end)
   else
     -- STOP: SIGINT tells ffmpeg to finalize the file and exit cleanly.
     if recTimer then recTimer:stop(); recTimer = nil end
-    hs.alert.show("Transcribing… keep your cursor where the text should go", 90)
+    hud.showBusy("Stopping")
     recorder:interrupt()
     recorder = nil
   end
