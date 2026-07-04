@@ -51,9 +51,10 @@ Double-tap Ctrl ──▶ whisper.cpp (large-v3-turbo + Silero VAD, Metal) ─�
    ```
 5. Grant permissions when prompted: **Accessibility** (hotkey + paste) and
    **Microphone** (first recording). Both under System Settings → Privacy & Security.
-6. If the mic isn't device `:0`, list devices with
-   `ffmpeg -f avfoundation -list_devices true -i ""` and update `MIC_DEVICE`
-   in `dictation.lua`.
+6. The mic is selected by name (`:MacBook Pro Microphone`). On different
+   hardware, list devices with `ffmpeg -f avfoundation -list_devices true -i ""`
+   and update `MIC_DEVICE` in `dictation.lua`. Use the name, not the index —
+   indices reshuffle whenever audio devices come and go.
 
 ## Daily use
 

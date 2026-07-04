@@ -10,7 +10,10 @@ require("hs.ipc")   -- lets the `hs` command-line tool talk to Hammerspoon
 local DIR = os.getenv("HOME") .. "/Fable5-Projects/local-wispr-flow"
 local WAV = DIR .. "/dictation.wav"
 local FFMPEG = "/opt/homebrew/bin/ffmpeg"
-local MIC_DEVICE = ":0"   -- MacBook Pro Microphone (ffmpeg avfoundation index)
+-- Select the mic by NAME, not index: avfoundation indices reshuffle whenever
+-- audio devices appear/disappear (iPhone, Zoom, headsets), which silently
+-- points ":0" at the wrong device.
+local MIC_DEVICE = ":MacBook Pro Microphone"
 
 local DOUBLE_TAP_SECS = 0.4   -- max gap between the two Ctrl taps
 
